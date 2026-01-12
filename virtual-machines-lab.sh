@@ -98,11 +98,11 @@ print_status "Task 3: Creating custom virtual machine..."
 CUSTOM_VM="custom-vm"
 echo "Creating custom VM: $CUSTOM_VM (2 vCPUs, 4 GB memory)..."
 
-if gcloud compute instances describe $CUSTOM_VM --zone=us-east4-a &>/dev/null; then
+if gcloud compute instances describe $CUSTOM_VM --zone=us-east4-b &>/dev/null; then
     echo "  $CUSTOM_VM already exists, skipping..."
 else
     gcloud compute instances create $CUSTOM_VM \
-        --zone=us-east4-a \
+        --zone=us-east4-b \
         --custom-cpu=2 \
         --custom-memory=4GB \
         --image-family=debian-12 \
@@ -138,7 +138,7 @@ echo ""
 echo "To connect to VMs:"
 echo "  SSH to Debian VMs:"
 echo "    gcloud compute ssh utility-vm --zone=us-east4-a"
-echo "    gcloud compute ssh custom-vm --zone=us-east4-a"
+echo "    gcloud compute ssh custom-vm --zone=us-east4-b"
 echo ""
 echo "  Set Windows password:"
 echo "    gcloud compute reset-windows-password windows-vm --zone=us-east4-a"
