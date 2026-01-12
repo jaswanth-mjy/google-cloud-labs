@@ -43,8 +43,7 @@ if ! gcloud storage buckets describe gs://$BUCKET_NAME_1 &>/dev/null; then
     echo "Creating bucket: $BUCKET_NAME_1"
     gcloud storage buckets create gs://$BUCKET_NAME_1 \
         --location=$REGION \
-        --no-public-access-prevention \
-        --uniform-bucket-level-access=false
+        --pap=unspecified
     echo "${GREEN}✓ Bucket created${RESET}"
 else
     echo "${GREEN}✓ Bucket already exists${RESET}"
