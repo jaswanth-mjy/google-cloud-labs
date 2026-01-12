@@ -111,7 +111,7 @@ echo "Creating mynet-us-vm in us-central1-c..."
 gcloud compute instances create mynet-us-vm \
     --zone=us-central1-c \
     --machine-type=e2-medium \
-    --subnet=mynetwork \
+    --network=mynetwork \
     --image-family=debian-12 \
     --image-project=debian-cloud \
     --boot-disk-size=10GB \
@@ -122,7 +122,7 @@ echo "Creating mynet-notus-vm in asia-east1-a..."
 gcloud compute instances create mynet-notus-vm \
     --zone=asia-east1-a \
     --machine-type=e2-medium \
-    --subnet=mynetwork \
+    --network=mynetwork \
     --image-family=debian-12 \
     --image-project=debian-cloud \
     --boot-disk-size=10GB \
