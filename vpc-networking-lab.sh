@@ -136,17 +136,20 @@ else
         --tags=iap-gce
 fi
 
-print_status "Task 2 completed! VMs are being created..."
+print_status "Task 2 completed! VMs created!"
 
 # Wait for instances to be ready
 echo "Waiting for instances to be ready..."
-sleep 30
+sleep 20
 
 # Convert auto mode to custom mode
 echo "Converting mynetwork from auto mode to custom mode..."
-gcloud compute networks update mynetwork --switch-to-custom-subnet-mode
-
-print_status "Network converted to custom mode!"
+if gcloud compute networks describe mynetwork --format="value(subnetMode)" | grep -q "CUSTOM"; then
+    echo "  mynetwork already in custom mode, skipping..."
+else
+    gcloud compute networks update mynetwork --switch-to-custom-subnet-mode --quiet
+    print_status "Network converted to custom mode!"
+fi
 
 # ============================================
 # Task 3: Create custom mode networks
@@ -158,26 +161,38 @@ echo "Creating managementnet network..."
 gcloud compute networks create managementnet --subnet-mode=custom 2>/dev/null || echo "  managementnet already exists"
 
 echo "Creating managementsubnet-us..."
-gcloud compute networks subnets create managementsubnet-us \
-    --network=managementnet \
-    --region=us-central1 \
-    --range=10.240.0.0/20 2>/dev/null || echo "  managementsubnet-us already exists"
+if gcloud compute networks subnets describe managementsubnet-us --region=us-central1 &>/dev/null; then
+    echo "  managementsubnet-us already exists, skipping..."
+else
+    gcloud compute networks subnets create managementsubnet-us \
+        --network=managementnet \
+        --region=us-central1 \
+        --range=10.240.0.0/20
+fi
 
 # Create privatenet network
 echo "Creating privatenet network..."
 gcloud compute networks create privatenet --subnet-mode=custom 2>/dev/null || echo "  privatenet already exists"
 
 echo "Creating privatesubnet-us..."
-gcloud compute networks subnets create privatesubnet-us \
-    --network=privatenet \
-    --region=us-central1 \
-    --range=172.16.0.0/24 2>/dev/null || echo "  privatesubnet-us already exists"
+if gcloud compute networks subnets describe privatesubnet-us --region=us-central1 &>/dev/null; then
+    echo "  privatesubnet-us already exists, skipping..."
+else
+    gcloud compute networks subnets create privatesubnet-us \
+        --network=privatenet \
+        --region=us-central1 \
+        --range=172.16.0.0/24
+fi
 
 echo "Creating privatesubnet-notus..."
-gcloud compute networks subnets create privatesubnet-notus \
-    --network=privatenet \
-    --region=asia-east1 \
-    --range=172.20.0.0/20 2>/dev/null || echo "  privatesubnet-notus already exists"
+if gcloud compute networks subnets describe privatesubnet-notus --region=asia-east1 &>/dev/null; then
+    echo "  privatesubnet-notus already exists, skipping..."
+else
+    gcloud compute networks subnets create privatesubnet-notus \
+        --network=privatenet \
+        --region=asia-east1 \
+        --range=172.20.0.0/20
+fi
 
 # Create firewall rules for managementnet
 echo "Creating firewall rules for managementnet..."
