@@ -165,12 +165,12 @@ else
 fi
 
 echo "Creating managementsubnet-us..."
-if gcloud compute networks subnets describe managementsubnet-us --region=us-central1 &>/dev/null; then
+if gcloud compute networks subnets describe managementsubnet-us --region=us-east4 &>/dev/null; then
     echo "  managementsubnet-us already exists, skipping..."
 else
     gcloud compute networks subnets create managementsubnet-us \
         --network=managementnet \
-        --region=us-central1 \
+        --region=us-east4 \
         --range=10.240.0.0/20
 fi
 
@@ -183,22 +183,22 @@ else
 fi
 
 echo "Creating privatesubnet-us..."
-if gcloud compute networks subnets describe privatesubnet-us --region=us-central1 &>/dev/null; then
+if gcloud compute networks subnets describe privatesubnet-us --region=us-east4 &>/dev/null; then
     echo "  privatesubnet-us already exists, skipping..."
 else
     gcloud compute networks subnets create privatesubnet-us \
         --network=privatenet \
-        --region=us-central1 \
+        --region=us-east4 \
         --range=172.16.0.0/24
 fi
 
 echo "Creating privatesubnet-notus..."
-if gcloud compute networks subnets describe privatesubnet-notus --region=asia-east1 &>/dev/null; then
+if gcloud compute networks subnets describe privatesubnet-notus --region=asia-southeast1 &>/dev/null; then
     echo "  privatesubnet-notus already exists, skipping..."
 else
     gcloud compute networks subnets create privatesubnet-notus \
         --network=privatenet \
-        --region=asia-east1 \
+        --region=asia-southeast1 \
         --range=172.20.0.0/20
 fi
 
@@ -224,11 +224,11 @@ gcloud compute firewall-rules create privatenet-allow-icmp-ssh-rdp \
 
 # Create VM instances for managementnet
 echo "Creating managementnet-us-vm..."
-if gcloud compute instances describe managementnet-us-vm --zone=us-central1-c &>/dev/null; then
+if gcloud compute instances describe managementnet-us-vm --zone=us-east4-a &>/dev/null; then
     echo "  managementnet-us-vm already exists, skipping..."
 else
     gcloud compute instances create managementnet-us-vm \
-        --zone=us-central1-c \
+        --zone=us-east4-a \
         --machine-type=e2-micro \
         --subnet=managementsubnet-us \
         --image-family=debian-12 \
@@ -239,11 +239,11 @@ fi
 
 # Create VM instance for privatenet
 echo "Creating privatenet-us-vm..."
-if gcloud compute instances describe privatenet-us-vm --zone=us-central1-c &>/dev/null; then
+if gcloud compute instances describe privatenet-us-vm --zone=us-east4-a &>/dev/null; then
     echo "  privatenet-us-vm already exists, skipping..."
 else
     gcloud compute instances create privatenet-us-vm \
-        --zone=us-central1-c \
+        --zone=us-east4-a \
         --machine-type=e2-micro \
         --subnet=privatesubnet-us \
         --image-family=debian-12 \
