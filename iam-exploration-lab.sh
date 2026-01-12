@@ -28,14 +28,17 @@ echo "${YELLOW}${BOLD}Starting${RESET}" "${GREEN}${BOLD}Execution${RESET}"
 
 # Get lab credentials from environment or user input
 if [ -z "$USER1_EMAIL" ]; then
-    echo "${YELLOW}Enter Username 1 email (from lab credentials):${RESET}"
-    read USER1_EMAIL
+    # Default values (update these with your lab credentials)
+    USER1_EMAIL="student-02-02c4be5678a3@qwiklabs.net"
 fi
 
 if [ -z "$USER2_EMAIL" ]; then
-    echo "${YELLOW}Enter Username 2 email (from lab credentials):${RESET}"
-    read USER2_EMAIL
+    # Default values (update these with your lab credentials)
+    USER2_EMAIL="student-02-fe419774ea91@qwiklabs.net"
 fi
+
+echo "${CYAN}Using Username 1: $USER1_EMAIL${RESET}"
+echo "${CYAN}Using Username 2: $USER2_EMAIL${RESET}"
 
 export REGION="us-east1"
 export ZONE="us-east1-d"
