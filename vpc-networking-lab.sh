@@ -158,7 +158,11 @@ print_status "Task 3: Creating custom mode networks..."
 
 # Create managementnet network
 echo "Creating managementnet network..."
-gcloud compute networks create managementnet --subnet-mode=custom 2>/dev/null || echo "  managementnet already exists"
+if gcloud compute networks describe managementnet &>/dev/null; then
+    echo "  managementnet already exists, skipping..."
+else
+    gcloud compute networks create managementnet --subnet-mode=custom
+fi
 
 echo "Creating managementsubnet-us..."
 if gcloud compute networks subnets describe managementsubnet-us --region=us-central1 &>/dev/null; then
@@ -172,7 +176,11 @@ fi
 
 # Create privatenet network
 echo "Creating privatenet network..."
-gcloud compute networks create privatenet --subnet-mode=custom 2>/dev/null || echo "  privatenet already exists"
+if gcloud compute networks describe privatenet &>/dev/null; then
+    echo "  privatenet already exists, skipping..."
+else
+    gcloud compute networks create privatenet --subnet-mode=custom
+fi
 
 echo "Creating privatesubnet-us..."
 if gcloud compute networks subnets describe privatesubnet-us --region=us-central1 &>/dev/null; then
