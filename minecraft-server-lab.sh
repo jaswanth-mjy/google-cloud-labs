@@ -34,67 +34,83 @@ export REGION="${ZONE%-*}"
 echo ""
 echo "${YELLOW}${BOLD}Task 1: Creating Minecraft Server VM...${RESET}"
 
-# Check if VM already exists
+# Delete VM if it exists
 if gcloud compute instances describe mc-server --zone=$ZONE &>/dev/null; then
-    echo "${GREEN}✓ VM 'mc-server' already exists. Skipping creation.${RESET}"
-else
-    # Reserve static IP address
-    if ! gcloud compute addresses describe mc-server-ip --region=$REGION &>/dev/null; then
-        echo "Creating static external IP address..."
-        gcloud compute addresses create mc-server-ip --region=$REGION
-        echo "${GREEN}✓ Static IP 'mc-server-ip' created${RESET}"
-    else
-        echo "${GREEN}✓ Static IP 'mc-server-ip' already exists${RESET}"
-    fi
-    
-    # Get the static IP address
-    ADDRESS=$(gcloud compute addresses describe mc-server-ip --region=$REGION --format='value(address)')
-    
-    # Create the VM instance with all advanced options
-    echo "Creating Minecraft server VM..."
-    gcloud compute instances create mc-server \
-        --project=$DEVSHELL_PROJECT_ID \
-        --zone=$ZONE \
-        --machine-type=e2-medium \
-        --network-interface=address=$ADDRESS,network-tier=PREMIUM,stack-type=IPV4_ONLY,subnet=default \
-        --metadata=enable-oslogin=true \
-        --maintenance-policy=MIGRATE \
-        --provisioning-model=STANDARD \
-        --scopes=https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/trace.append,https://www.googleapis.com/auth/devstorage.read_write \
-        --tags=minecraft-server \
-        --create-disk=auto-delete=yes,boot=yes,device-name=mc-server,image=projects/debian-cloud/global/images/debian-12-bookworm-v20240910,mode=rw,size=10,type=projects/$DEVSHELL_PROJECT_ID/zones/$ZONE/diskTypes/pd-standard \
-        --create-disk=device-name=minecraft-disk,mode=rw,name=minecraft-disk,size=50,type=projects/$DEVSHELL_PROJECT_ID/zones/$ZONE/diskTypes/pd-ssd \
-        --no-shielded-secure-boot \
-        --shielded-vtpm \
-        --shielded-integrity-monitoring \
-        --labels=goog-ec-src=vm_add-gcloud \
-        --reservation-affinity=any
-    
-    echo "${GREEN}✓ VM 'mc-server' created successfully${RESET}"
-    
-    # Wait for VM to be ready
-    echo "Waiting for VM to be ready..."
-    sleep 30
+    echo "Deleting existing VM 'mc-server'..."
+    gcloud compute instances delete mc-server --zone=$ZONE --quiet
+    echo "${GREEN}✓ Existing VM deleted${RESET}"
 fi
+
+# Delete disk if it exists
+if gcloud compute disks describe minecraft-disk --zone=$ZONE &>/dev/null; then
+    echo "Deleting existing disk 'minecraft-disk'..."
+    gcloud compute disks delete minecraft-disk --zone=$ZONE --quiet
+    echo "${GREEN}✓ Existing disk deleted${RESET}"
+fi
+
+# Delete static IP if it exists
+if gcloud compute addresses describe mc-server-ip --region=$REGION &>/dev/null; then
+    echo "Deleting existing static IP 'mc-server-ip'..."
+    gcloud compute addresses delete mc-server-ip --region=$REGION --quiet
+    echo "${GREEN}✓ Existing static IP deleted${RESET}"
+fi
+
+# Create static IP address
+echo "Creating static external IP address..."
+gcloud compute addresses create mc-server-ip --region=$REGION
+echo "${GREEN}✓ Static IP 'mc-server-ip' created${RESET}"
+
+# Get the static IP address
+ADDRESS=$(gcloud compute addresses describe mc-server-ip --region=$REGION --format='value(address)')
+
+# Create the VM instance with all advanced options
+echo "Creating Minecraft server VM..."
+gcloud compute instances create mc-server \
+    --project=$DEVSHELL_PROJECT_ID \
+    --zone=$ZONE \
+    --machine-type=e2-medium \
+    --network-interface=address=$ADDRESS,network-tier=PREMIUM,stack-type=IPV4_ONLY,subnet=default \
+    --metadata=enable-oslogin=true \
+    --maintenance-policy=MIGRATE \
+    --provisioning-model=STANDARD \
+    --scopes=https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/trace.append,https://www.googleapis.com/auth/devstorage.read_write \
+    --tags=minecraft-server \
+    --create-disk=auto-delete=yes,boot=yes,device-name=mc-server,image=projects/debian-cloud/global/images/debian-12-bookworm-v20240910,mode=rw,size=10,type=projects/$DEVSHELL_PROJECT_ID/zones/$ZONE/diskTypes/pd-standard \
+    --create-disk=device-name=minecraft-disk,mode=rw,name=minecraft-disk,size=50,type=projects/$DEVSHELL_PROJECT_ID/zones/$ZONE/diskTypes/pd-ssd \
+    --no-shielded-secure-boot \
+    --shielded-vtpm \
+    --shielded-integrity-monitoring \
+    --labels=goog-ec-src=vm_add-gcloud \
+    --reservation-affinity=any
+
+echo "${GREEN}✓ VM 'mc-server' created successfully${RESET}"
+
+# Wait for VM to be ready
+echo "Waiting for VM to be ready..."
+sleep 30
 
 # Task 4: Create firewall rule
 echo ""
 echo "${YELLOW}${BOLD}Task 4: Creating firewall rule for Minecraft...${RESET}"
 
+# Delete firewall rule if it exists
 if gcloud compute firewall-rules describe minecraft-rule &>/dev/null; then
-    echo "${GREEN}✓ Firewall rule 'minecraft-rule' already exists${RESET}"
-else
-    gcloud compute --project=$DEVSHELL_PROJECT_ID firewall-rules create minecraft-rule \
-        --direction=INGRESS \
-        --priority=1000 \
-        --network=default \
-        --action=ALLOW \
-        --rules=tcp:25565 \
-        --source-ranges=0.0.0.0/0 \
-        --target-tags=minecraft-server
-    
-    echo "${GREEN}✓ Firewall rule created to allow Minecraft client traffic on TCP port 25565${RESET}"
+    echo "Deleting existing firewall rule 'minecraft-rule'..."
+    gcloud compute firewall-rules delete minecraft-rule --quiet
+    echo "${GREEN}✓ Existing firewall rule deleted${RESET}"
 fi
+
+# Create firewall rule
+gcloud compute --project=$DEVSHELL_PROJECT_ID firewall-rules create minecraft-rule \
+    --direction=INGRESS \
+    --priority=1000 \
+    --network=default \
+    --action=ALLOW \
+    --rules=tcp:25565 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=minecraft-server
+
+echo "${GREEN}✓ Firewall rule created to allow Minecraft client traffic on TCP port 25565${RESET}"
 
 # Add project-id metadata to VM
 gcloud compute instances add-metadata mc-server \
