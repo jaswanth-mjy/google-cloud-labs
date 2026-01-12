@@ -27,7 +27,8 @@ RESET=`tput sgr0`
 echo "${YELLOW}${BOLD}Starting${RESET}" "${GREEN}${BOLD}Execution${RESET}"
 
 # Set default zone and derive region from it
-export ZONE="europe-west1-b"
+# Note: Changed from europe-west1-b to us-east4-b due to organizational policy constraints
+export ZONE="us-east4-b"
 export REGION="${ZONE%-*}"
 
 # Task 1: Create the VM with advanced configuration
