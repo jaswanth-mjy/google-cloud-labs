@@ -107,26 +107,34 @@ gcloud compute firewall-rules create allow-iap-ssh \
 
 # Create VM instances
 echo "Creating mynet-us-vm in us-central1-c..."
-gcloud compute instances create mynet-us-vm \
-    --zone=us-central1-c \
-    --machine-type=e2-medium \
-    --network=mynetwork \
-    --image-family=debian-12 \
-    --image-project=debian-cloud \
-    --boot-disk-size=10GB \
-    --boot-disk-type=pd-standard \
-    --tags=iap-gce 2>/dev/null || echo "  mynet-us-vm already exists"
+if gcloud compute instances describe mynet-us-vm --zone=us-central1-c &>/dev/null; then
+    echo "  mynet-us-vm already exists, skipping..."
+else
+    gcloud compute instances create mynet-us-vm \
+        --zone=us-central1-c \
+        --machine-type=e2-medium \
+        --network=mynetwork \
+        --image-family=debian-12 \
+        --image-project=debian-cloud \
+        --boot-disk-size=10GB \
+        --boot-disk-type=pd-standard \
+        --tags=iap-gce
+fi
 
 echo "Creating mynet-notus-vm in asia-east1-a..."
-gcloud compute instances create mynet-notus-vm \
-    --zone=asia-east1-a \
-    --machine-type=e2-medium \
-    --network=mynetwork \
-    --image-family=debian-12 \
-    --image-project=debian-cloud \
-    --boot-disk-size=10GB \
-    --boot-disk-type=pd-standard \
-    --tags=iap-gce 2>/dev/null || echo "  mynet-notus-vm already exists"
+if gcloud compute instances describe mynet-notus-vm --zone=asia-east1-a &>/dev/null; then
+    echo "  mynet-notus-vm already exists, skipping..."
+else
+    gcloud compute instances create mynet-notus-vm \
+        --zone=asia-east1-a \
+        --machine-type=e2-medium \
+        --network=mynetwork \
+        --image-family=debian-12 \
+        --image-project=debian-cloud \
+        --boot-disk-size=10GB \
+        --boot-disk-type=pd-standard \
+        --tags=iap-gce
+fi
 
 print_status "Task 2 completed! VMs are being created..."
 
@@ -193,25 +201,33 @@ gcloud compute firewall-rules create privatenet-allow-icmp-ssh-rdp \
 
 # Create VM instances for managementnet
 echo "Creating managementnet-us-vm..."
-gcloud compute instances create managementnet-us-vm \
-    --zone=us-central1-c \
-    --machine-type=e2-micro \
-    --subnet=managementsubnet-us \
-    --image-family=debian-12 \
-    --image-project=debian-cloud \
-    --boot-disk-size=10GB \
-    --boot-disk-type=pd-standard 2>/dev/null || echo "  managementnet-us-vm already exists"
+if gcloud compute instances describe managementnet-us-vm --zone=us-central1-c &>/dev/null; then
+    echo "  managementnet-us-vm already exists, skipping..."
+else
+    gcloud compute instances create managementnet-us-vm \
+        --zone=us-central1-c \
+        --machine-type=e2-micro \
+        --subnet=managementsubnet-us \
+        --image-family=debian-12 \
+        --image-project=debian-cloud \
+        --boot-disk-size=10GB \
+        --boot-disk-type=pd-standard
+fi
 
 # Create VM instance for privatenet
 echo "Creating privatenet-us-vm..."
-gcloud compute instances create privatenet-us-vm \
-    --zone=us-central1-c \
-    --machine-type=e2-micro \
-    --subnet=privatesubnet-us \
-    --image-family=debian-12 \
-    --image-project=debian-cloud \
-    --boot-disk-size=10GB \
-    --boot-disk-type=pd-standard 2>/dev/null || echo "  privatenet-us-vm already exists"
+if gcloud compute instances describe privatenet-us-vm --zone=us-central1-c &>/dev/null; then
+    echo "  privatenet-us-vm already exists, skipping..."
+else
+    gcloud compute instances create privatenet-us-vm \
+        --zone=us-central1-c \
+        --machine-type=e2-micro \
+        --subnet=privatesubnet-us \
+        --image-family=debian-12 \
+        --image-project=debian-cloud \
+        --boot-disk-size=10GB \
+        --boot-disk-type=pd-standard
+fi
 
 print_status "Task 3 completed! All custom networks and VMs created!"
 
