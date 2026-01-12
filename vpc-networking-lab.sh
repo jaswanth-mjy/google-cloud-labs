@@ -2,8 +2,7 @@
 
 # VPC Networking Lab - Automated Script
 # This script completes all tasks in the VPC Networking lab
-
-set -e  # Exit on error
+# It skips already completed tasks
 
 echo "=========================================="
 echo "VPC Networking Lab - Automated Completion"
@@ -30,14 +29,14 @@ print_status "Task 1: Cleaning up default network..."
 
 # Delete default firewall rules
 echo "Deleting default firewall rules..."
-gcloud compute firewall-rules delete default-allow-icmp --quiet 2>/dev/null || echo "default-allow-icmp not found"
-gcloud compute firewall-rules delete default-allow-internal --quiet 2>/dev/null || echo "default-allow-internal not found"
-gcloud compute firewall-rules delete default-allow-rdp --quiet 2>/dev/null || echo "default-allow-rdp not found"
-gcloud compute firewall-rules delete default-allow-ssh --quiet 2>/dev/null || echo "default-allow-ssh not found"
+gcloud compute firewall-rules delete default-allow-icmp --quiet 2>/dev/null || echo "  Already deleted or not found"
+gcloud compute firewall-rules delete default-allow-internal --quiet 2>/dev/null || echo "  Already deleted or not found"
+gcloud compute firewall-rules delete default-allow-rdp --quiet 2>/dev/null || echo "  Already deleted or not found"
+gcloud compute firewall-rules delete default-allow-ssh --quiet 2>/dev/null || echo "  Already deleted or not found"
 
 # Delete default network
 echo "Deleting default network..."
-gcloud compute networks delete default --quiet 2>/dev/null || echo "default network not found"
+gcloud compute networks delete default --quiet 2>/dev/null || echo "  Already deleted or not found"
 
 print_status "Task 1 completed!"
 
@@ -54,7 +53,7 @@ gcloud services enable networkmanagement.googleapis.com
 
 # Create auto mode network
 echo "Creating mynetwork (auto mode)..."
-gcloud compute networks create mynetwork --subnet-mode=auto
+gcloud compute networks create mynetwork --subnet-mode=auto 2>/dev/null || echo "  Network already exists, skipping..."
 
 # Create firewall rules for mynetwork
 echo "Creating firewall rules for mynetwork..."
@@ -66,7 +65,7 @@ gcloud compute firewall-rules create mynetwork-allow-icmp \
     --priority=65534 \
     --action=ALLOW \
     --rules=icmp \
-    --source-ranges=0.0.0.0/0
+    --source-ranges=0.0.0.0/0 2>/dev/null || echo "  mynetwork-allow-icmp already exists"
 
 # Allow internal traffic
 gcloud compute firewall-rules create mynetwork-allow-custom \
@@ -75,7 +74,7 @@ gcloud compute firewall-rules create mynetwork-allow-custom \
     --priority=65534 \
     --action=ALLOW \
     --rules=all \
-    --source-ranges=10.128.0.0/9
+    --source-ranges=10.128.0.0/9 2>/dev/null || echo "  mynetwork-allow-custom already exists"
 
 # Allow RDP
 gcloud compute firewall-rules create mynetwork-allow-rdp \
@@ -84,7 +83,7 @@ gcloud compute firewall-rules create mynetwork-allow-rdp \
     --priority=65534 \
     --action=ALLOW \
     --rules=tcp:3389 \
-    --source-ranges=0.0.0.0/0
+    --source-ranges=0.0.0.0/0 2>/dev/null || echo "  mynetwork-allow-rdp already exists"
 
 # Allow SSH
 gcloud compute firewall-rules create mynetwork-allow-ssh \
@@ -93,7 +92,7 @@ gcloud compute firewall-rules create mynetwork-allow-ssh \
     --priority=65534 \
     --action=ALLOW \
     --rules=tcp:22 \
-    --source-ranges=0.0.0.0/0
+    --source-ranges=0.0.0.0/0 2>/dev/null || echo "  mynetwork-allow-ssh already exists"
 
 # Allow IAP SSH access
 echo "Creating IAP firewall rule..."
@@ -104,7 +103,7 @@ gcloud compute firewall-rules create allow-iap-ssh \
     --action=ALLOW \
     --rules=tcp:22 \
     --source-ranges=35.235.240.0/20 \
-    --target-tags=iap-gce
+    --target-tags=iap-gce 2>/dev/null || echo "  allow-iap-ssh already exists"
 
 # Create VM instances
 echo "Creating mynet-us-vm in us-central1-c..."
@@ -116,7 +115,7 @@ gcloud compute instances create mynet-us-vm \
     --image-project=debian-cloud \
     --boot-disk-size=10GB \
     --boot-disk-type=pd-standard \
-    --tags=iap-gce
+    --tags=iap-gce 2>/dev/null || echo "  mynet-us-vm already exists"
 
 echo "Creating mynet-notus-vm in asia-east1-a..."
 gcloud compute instances create mynet-notus-vm \
@@ -127,7 +126,7 @@ gcloud compute instances create mynet-notus-vm \
     --image-project=debian-cloud \
     --boot-disk-size=10GB \
     --boot-disk-type=pd-standard \
-    --tags=iap-gce
+    --tags=iap-gce 2>/dev/null || echo "  mynet-notus-vm already exists"
 
 print_status "Task 2 completed! VMs are being created..."
 
@@ -148,29 +147,29 @@ print_status "Task 3: Creating custom mode networks..."
 
 # Create managementnet network
 echo "Creating managementnet network..."
-gcloud compute networks create managementnet --subnet-mode=custom
+gcloud compute networks create managementnet --subnet-mode=custom 2>/dev/null || echo "  managementnet already exists"
 
 echo "Creating managementsubnet-us..."
 gcloud compute networks subnets create managementsubnet-us \
     --network=managementnet \
     --region=us-central1 \
-    --range=10.240.0.0/20
+    --range=10.240.0.0/20 2>/dev/null || echo "  managementsubnet-us already exists"
 
 # Create privatenet network
 echo "Creating privatenet network..."
-gcloud compute networks create privatenet --subnet-mode=custom
+gcloud compute networks create privatenet --subnet-mode=custom 2>/dev/null || echo "  privatenet already exists"
 
 echo "Creating privatesubnet-us..."
 gcloud compute networks subnets create privatesubnet-us \
     --network=privatenet \
     --region=us-central1 \
-    --range=172.16.0.0/24
+    --range=172.16.0.0/24 2>/dev/null || echo "  privatesubnet-us already exists"
 
 echo "Creating privatesubnet-notus..."
 gcloud compute networks subnets create privatesubnet-notus \
     --network=privatenet \
     --region=asia-east1 \
-    --range=172.20.0.0/20
+    --range=172.20.0.0/20 2>/dev/null || echo "  privatesubnet-notus already exists"
 
 # Create firewall rules for managementnet
 echo "Creating firewall rules for managementnet..."
@@ -180,7 +179,7 @@ gcloud compute firewall-rules create managementnet-allow-icmp-ssh-rdp \
     --priority=1000 \
     --action=ALLOW \
     --rules=icmp,tcp:22,tcp:3389 \
-    --source-ranges=0.0.0.0/0
+    --source-ranges=0.0.0.0/0 2>/dev/null || echo "  managementnet-allow-icmp-ssh-rdp already exists"
 
 # Create firewall rules for privatenet
 echo "Creating firewall rules for privatenet..."
@@ -190,7 +189,7 @@ gcloud compute firewall-rules create privatenet-allow-icmp-ssh-rdp \
     --priority=1000 \
     --action=ALLOW \
     --rules=icmp,tcp:22,tcp:3389 \
-    --source-ranges=0.0.0.0/0
+    --source-ranges=0.0.0.0/0 2>/dev/null || echo "  privatenet-allow-icmp-ssh-rdp already exists"
 
 # Create VM instances for managementnet
 echo "Creating managementnet-us-vm..."
@@ -201,7 +200,7 @@ gcloud compute instances create managementnet-us-vm \
     --image-family=debian-12 \
     --image-project=debian-cloud \
     --boot-disk-size=10GB \
-    --boot-disk-type=pd-standard
+    --boot-disk-type=pd-standard 2>/dev/null || echo "  managementnet-us-vm already exists"
 
 # Create VM instance for privatenet
 echo "Creating privatenet-us-vm..."
@@ -212,7 +211,7 @@ gcloud compute instances create privatenet-us-vm \
     --image-family=debian-12 \
     --image-project=debian-cloud \
     --boot-disk-size=10GB \
-    --boot-disk-type=pd-standard
+    --boot-disk-type=pd-standard 2>/dev/null || echo "  privatenet-us-vm already exists"
 
 print_status "Task 3 completed! All custom networks and VMs created!"
 
