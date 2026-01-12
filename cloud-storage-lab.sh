@@ -41,10 +41,8 @@ echo "${YELLOW}${BOLD}Task 1: Creating Cloud Storage bucket and downloading samp
 # Create bucket
 if ! gcloud storage buckets describe gs://$BUCKET_NAME_1 &>/dev/null; then
     echo "Creating bucket: $BUCKET_NAME_1"
-    gcloud storage buckets create gs://$BUCKET_NAME_1 \
-        --location=$REGION \
-        --pap=unspecified
-    echo "${GREEN}✓ Bucket created${RESET}"
+    gsutil mb -l $REGION -b off gs://$BUCKET_NAME_1
+    echo "${GREEN}✓ Bucket created with fine-grained access control${RESET}"
 else
     echo "${GREEN}✓ Bucket already exists${RESET}"
 fi
