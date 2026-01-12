@@ -106,8 +106,8 @@ gcloud compute firewall-rules create allow-iap-ssh \
     --target-tags=iap-gce 2>/dev/null || echo "  allow-iap-ssh already exists"
 
 # Create VM instances
-echo "Creating mynet-us-vm in us-central1-c..."
-if gcloud compute instances describe mynet-us-vm --zone=us-central1-c &>/dev/null; then
+echo "Creating mynet-us-vm in us-east4-a..."
+if gcloud compute instances describe mynet-us-vm --zone=us-east4-a &>/dev/null; then
     echo "  mynet-us-vm already exists, skipping..."
 else
     # Check if network is in custom mode and use appropriate flag
@@ -115,10 +115,10 @@ else
     if [ "$MODE" = "CUSTOM" ]; then
         # Custom mode - need to specify subnet
         gcloud compute instances create mynet-us-vm \
-            --zone=us-central1-c \
+            --zone=us-east4-a \
             --machine-type=e2-medium \
             --subnet=mynetwork \
-            --subnet-region=us-central1 \
+            --subnet-region=us-east4 \
             --image-family=debian-12 \
             --image-project=debian-cloud \
             --boot-disk-size=10GB \
@@ -127,7 +127,7 @@ else
     else
         # Auto mode - use network flag
         gcloud compute instances create mynet-us-vm \
-            --zone=us-central1-c \
+            --zone=us-east4-a \
             --machine-type=e2-medium \
             --network=mynetwork \
             --image-family=debian-12 \
@@ -138,8 +138,8 @@ else
     fi
 fi
 
-echo "Creating mynet-notus-vm in asia-east1-a..."
-if gcloud compute instances describe mynet-notus-vm --zone=asia-east1-a &>/dev/null; then
+echo "Creating mynet-notus-vm in asia-southeast1-c..."
+if gcloud compute instances describe mynet-notus-vm --zone=asia-southeast1-c &>/dev/null; then
     echo "  mynet-notus-vm already exists, skipping..."
 else
     # Check if network is in custom mode and use appropriate flag
@@ -147,10 +147,10 @@ else
     if [ "$MODE" = "CUSTOM" ]; then
         # Custom mode - need to specify subnet
         gcloud compute instances create mynet-notus-vm \
-            --zone=asia-east1-a \
+            --zone=asia-southeast1-c \
             --machine-type=e2-medium \
             --subnet=mynetwork \
-            --subnet-region=asia-east1 \
+            --subnet-region=asia-southeast1 \
             --image-family=debian-12 \
             --image-project=debian-cloud \
             --boot-disk-size=10GB \
@@ -159,7 +159,7 @@ else
     else
         # Auto mode - use network flag
         gcloud compute instances create mynet-notus-vm \
-            --zone=asia-east1-a \
+            --zone=asia-southeast1-c \
             --machine-type=e2-medium \
             --network=mynetwork \
             --image-family=debian-12 \
