@@ -144,6 +144,21 @@ gcloud beta compute instance-groups managed set-autoscaling notus-1-mig \
     --mode=on \
     --target-load-balancing-utilization=0.8
 
+# Wait for instance groups to be ready
+sleep 30
+
+# Set named ports for US instance group
+gcloud compute instance-groups set-named-ports us-1-mig \
+    --named-ports http:80 \
+    --region=$REGION
+
+# Set named ports for Asia instance group
+gcloud compute instance-groups set-named-ports notus-1-mig \
+    --named-ports http:80 \
+    --region=$REGION_2
+
+sleep 30
+
 # Create security policy
 curl -X POST -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
@@ -318,34 +333,6 @@ curl -X POST -H "Content-Type: application/json" \
   "https://compute.googleapis.com/compute/v1/projects/$DEVSHELL_PROJECT_ID/global/forwardingRules"
 
 sleep 30
-
-# Set named ports for Asia instance group
-curl -X POST -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "namedPorts": [
-      {
-        "name": "http",
-        "port": 80
-      }
-    ]
-  }' \
-  "https://compute.googleapis.com/compute/beta/projects/$DEVSHELL_PROJECT_ID/regions/$REGION_2/instanceGroups/notus-1-mig/setNamedPorts"
-
-sleep 30
-
-# Set named ports for US instance group
-curl -X POST -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "namedPorts": [
-      {
-        "name": "http",
-        "port": 80
-      }
-    ]
-  }' \
-  "https://compute.googleapis.com/compute/beta/projects/$DEVSHELL_PROJECT_ID/regions/$REGION/instanceGroups/us-1-mig/setNamedPorts"
 
 # Get load balancer IP
 LB_IP_ADDRESS=$(gcloud compute forwarding-rules describe http-lb-forwarding-rule --global --format="value(IPAddress)")
