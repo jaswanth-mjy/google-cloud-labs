@@ -77,25 +77,70 @@ fi
 
 # ==================== STEP 6: Create Dataproc Cluster ====================
 echo "${BOLD}${BLUE}Step 6: Creating Dataproc Cluster (example-cluster)${RESET}"
-echo "${YELLOW}This may take several minutes...${RESET}"
 
-gcloud dataproc clusters create example-cluster \
-  --region us-west1 \
-  --zone us-west1-b \
-  --master-machine-type e2-standard-2 \
-  --master-boot-disk-size 30 \
-  --num-workers 2 \
-  --worker-machine-type e2-standard-2 \
-  --worker-boot-disk-size 30 \
-  --image-version 2.2-debian12 \
-  --project $PROJECT_ID \
-  --enable-component-gateway
+# Check if cluster already exists
+CLUSTER_EXISTS=$(gcloud dataproc clusters describe example-cluster --region us-west1 2>/dev/null)
 
 if [ $? -eq 0 ]; then
-  echo "${GREEN}✓ Cluster creation initiated successfully${RESET}"
+  echo "${YELLOW}Cluster 'example-cluster' already exists${RESET}"
+  CLUSTER_STATUS=$(gcloud dataproc clusters describe example-cluster --region us-west1 --format="value(status.state)")
+  echo "${CYAN}Current Status: $CLUSTER_STATUS${RESET}"
+  echo -e "\n${BOLD}${MAGENTA}Do you want to:${RESET}"
+  echo "  1) Delete and recreate the cluster"
+  echo "  2) Use the existing cluster"
+  read -p "Enter choice (1 or 2): " choice
+  
+  if [ "$choice" = "1" ]; then
+    echo "${YELLOW}Deleting existing cluster...${RESET}"
+    gcloud dataproc clusters delete example-cluster --region us-west1 --quiet
+    if [ $? -eq 0 ]; then
+      echo "${GREEN}✓ Cluster deleted${RESET}"
+      echo -e "\n${YELLOW}Creating new cluster (this may take several minutes)...${RESET}"
+      gcloud dataproc clusters create example-cluster \
+        --region us-west1 \
+        --zone us-west1-b \
+        --master-machine-type e2-standard-2 \
+        --master-boot-disk-size 30 \
+        --num-workers 2 \
+        --worker-machine-type e2-standard-2 \
+        --worker-boot-disk-size 30 \
+        --image-version 2.2-debian12 \
+        --project $PROJECT_ID \
+        --enable-component-gateway
+      
+      if [ $? -eq 0 ]; then
+        echo "${GREEN}✓ Cluster creation initiated successfully${RESET}"
+      else
+        echo "${RED}✗ Failed to create cluster${RESET}"
+        exit 1
+      fi
+    else
+      echo "${RED}✗ Failed to delete cluster${RESET}"
+      exit 1
+    fi
+  else
+    echo "${GREEN}✓ Using existing cluster${RESET}"
+  fi
 else
-  echo "${RED}✗ Failed to create cluster${RESET}"
-  exit 1
+  echo "${YELLOW}Cluster does not exist. Creating new cluster...${RESET}"
+  gcloud dataproc clusters create example-cluster \
+    --region us-west1 \
+    --zone us-west1-b \
+    --master-machine-type e2-standard-2 \
+    --master-boot-disk-size 30 \
+    --num-workers 2 \
+    --worker-machine-type e2-standard-2 \
+    --worker-boot-disk-size 30 \
+    --image-version 2.2-debian12 \
+    --project $PROJECT_ID \
+    --enable-component-gateway
+  
+  if [ $? -eq 0 ]; then
+    echo "${GREEN}✓ Cluster creation initiated successfully${RESET}"
+  else
+    echo "${RED}✗ Failed to create cluster${RESET}"
+    exit 1
+  fi
 fi
 
 # ==================== STEP 7: Verify Cluster Status ====================
