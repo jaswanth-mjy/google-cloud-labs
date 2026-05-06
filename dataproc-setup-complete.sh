@@ -32,7 +32,7 @@ echo "${GREEN}Region: $REGION${RESET}"
 
 # ==================== STEP 2: Get Project Information ====================
 echo "${BOLD}${YELLOW}Step 2: Getting Project Information${RESET}"
-export PROJECT_ID="qwiklabs-gcp-03-cbba027db714"
+export PROJECT_ID="qwiklabs-gcp-01-4c743e9ab70a"
 export PROJECT_NUMBER="$(gcloud projects describe $PROJECT_ID --format='get(projectNumber)')"
 
 echo "${GREEN}Project ID: $PROJECT_ID${RESET}"
@@ -79,11 +79,11 @@ fi
 echo "${BOLD}${BLUE}Step 6: Creating Dataproc Cluster (example-cluster)${RESET}"
 
 # Check if cluster already exists
-CLUSTER_EXISTS=$(gcloud dataproc clusters describe example-cluster --region us-west1 2>/dev/null)
+CLUSTER_EXISTS=$(gcloud dataproc clusters describe example-cluster --region asia-east1 2>/dev/null)
 
 if [ $? -eq 0 ]; then
   echo "${YELLOW}Cluster 'example-cluster' already exists${RESET}"
-  CLUSTER_STATUS=$(gcloud dataproc clusters describe example-cluster --region us-west1 --format="value(status.state)")
+  CLUSTER_STATUS=$(gcloud dataproc clusters describe example-cluster --region asia-east1 --format="value(status.state)")
   echo "${CYAN}Current Status: $CLUSTER_STATUS${RESET}"
   echo -e "\n${BOLD}${MAGENTA}Do you want to:${RESET}"
   echo "  1) Delete and recreate the cluster"
@@ -92,13 +92,13 @@ if [ $? -eq 0 ]; then
   
   if [ "$choice" = "1" ]; then
     echo "${YELLOW}Deleting existing cluster...${RESET}"
-    gcloud dataproc clusters delete example-cluster --region us-west1 --quiet
+    gcloud dataproc clusters delete example-cluster --region asia-east1 --quiet
     if [ $? -eq 0 ]; then
       echo "${GREEN}✓ Cluster deleted${RESET}"
       echo -e "\n${YELLOW}Creating new cluster (this may take several minutes)...${RESET}"
       gcloud dataproc clusters create example-cluster \
-        --region us-west1 \
-        --zone us-west1-b \
+        --region asia-east1 \
+        --zone asia-east1-c \
         --master-machine-type e2-standard-2 \
         --master-boot-disk-size 30 \
         --num-workers 2 \
@@ -124,8 +124,8 @@ if [ $? -eq 0 ]; then
 else
   echo "${YELLOW}Cluster does not exist. Creating new cluster...${RESET}"
   gcloud dataproc clusters create example-cluster \
-    --region us-west1 \
-    --zone us-west1-b \
+    --region asia-east1 \
+    --zone asia-east1-c \
     --master-machine-type e2-standard-2 \
     --master-boot-disk-size 30 \
     --num-workers 2 \
@@ -146,11 +146,11 @@ fi
 # ==================== STEP 7: Verify Cluster Status ====================
 echo "${BOLD}${GREEN}Step 7: Verifying Cluster Status${RESET}"
 gcloud dataproc clusters describe example-cluster \
-  --region us-west1 \
+  --region asia-east1 \
   --format="value(status.state)"
 
 echo "${CYAN}Cluster Status:${RESET}"
-gcloud dataproc clusters list --region us-west1 --format="table(name,status.state,location)"
+gcloud dataproc clusters list --region asia-east1 --format="table(name,status.state,location)"
 
 # ==================== COMPLETION MESSAGE ====================
 echo -e "\n"
@@ -160,8 +160,8 @@ echo "${BOLD}${GREEN}========================================${RESET}"
 echo -e "\n"
 echo "${YELLOW}Cluster Details:${RESET}"
 echo "  Name: example-cluster"
-echo "  Region: us-west1"
-echo "  Zone: us-west1-b"
+echo "  Region: asia-east1"
+echo "  Zone: asia-east1-c"
 echo "  Master Machine: e2-standard-2 (30 GB disk)"
 echo "  Workers: 2 x e2-standard-2 (30 GB disk each)"
 echo "  Image Version: 2.2-debian12"
@@ -174,7 +174,7 @@ echo "${BOLD}${MAGENTA}========================================${RESET}"
 echo -e "\n"
 echo "${BOLD}${BLUE}Submitting SparkPi job to estimate Pi using Monte Carlo method${RESET}"
 echo "${YELLOW}Job Configuration:${RESET}"
-echo "  Region: us-west1"
+echo "  Region: asia-east1"
 echo "  Cluster: example-cluster"
 echo "  Job Type: Spark"
 echo "  Main Class: org.apache.spark.examples.SparkPi"
@@ -184,7 +184,7 @@ echo -e "\n"
 
 JOB_ID=$(gcloud dataproc jobs submit spark \
   --cluster example-cluster \
-  --region us-west1 \
+  --region asia-east1 \
   --class org.apache.spark.examples.SparkPi \
   --jars file:///usr/lib/spark/examples/jars/spark-examples.jar \
   -- 1000 \
@@ -201,7 +201,7 @@ fi
 # Wait for job to complete
 echo -e "\n"
 echo "${BOLD}${YELLOW}Waiting for job to complete (this may take a few minutes)...${RESET}"
-gcloud dataproc jobs wait $JOB_ID --region us-west1
+gcloud dataproc jobs wait $JOB_ID --region asia-east1
 
 if [ $? -eq 0 ]; then
   echo "${GREEN}✓ Job completed successfully${RESET}"
@@ -216,12 +216,12 @@ echo "${BOLD}${CYAN}TASK 3: Viewing Job Output${RESET}"
 echo "${BOLD}${CYAN}========================================${RESET}"
 echo -e "\n"
 echo "${BOLD}${BLUE}Job Status and Details:${RESET}"
-gcloud dataproc jobs describe $JOB_ID --region us-west1 \
+gcloud dataproc jobs describe $JOB_ID --region asia-east1 \
   --format="table(reference.jobId,status.state,driverOutputResourceUri)"
 
 echo -e "\n"
 echo "${YELLOW}Fetching job output (showing last 50 lines):${RESET}"
-gsutil cat $(gcloud dataproc jobs describe $JOB_ID --region us-west1 --format="value(driverOutputResourceUri)") 2>/dev/null | tail -50
+gsutil cat $(gcloud dataproc jobs describe $JOB_ID --region asia-east1 --format="value(driverOutputResourceUri)") 2>/dev/null | tail -50
 
 echo -e "\n"
 
@@ -234,7 +234,7 @@ echo "${BOLD}${BLUE}Updating example-cluster from 2 workers to 4 workers${RESET}
 echo "${YELLOW}This may take a few minutes...${RESET}"
 
 gcloud dataproc clusters update example-cluster \
-  --region us-west1 \
+  --region asia-east1 \
   --num-workers 4
 
 if [ $? -eq 0 ]; then
@@ -246,7 +246,7 @@ fi
 echo -e "\n"
 echo "${BOLD}${GREEN}Updated Cluster Configuration:${RESET}"
 gcloud dataproc clusters describe example-cluster \
-  --region us-west1 \
+  --region asia-east1 \
   --format="table(name,config.masterConfig.machineTypeUri,config.workerConfig.numInstances,config.workerConfig.machineTypeUri,status.state)"
 
 echo -e "\n"
@@ -260,7 +260,7 @@ echo "${BOLD}${BLUE}Submitting another SparkPi job with 4-worker cluster${RESET}
 
 JOB_ID_2=$(gcloud dataproc jobs submit spark \
   --cluster example-cluster \
-  --region us-west1 \
+  --region asia-east1 \
   --class org.apache.spark.examples.SparkPi \
   --jars file:///usr/lib/spark/examples/jars/spark-examples.jar \
   -- 1000 \
@@ -272,13 +272,13 @@ if [ $? -eq 0 ]; then
   
   echo -e "\n"
   echo "${YELLOW}Waiting for job to complete...${RESET}"
-  gcloud dataproc jobs wait $JOB_ID_2 --region us-west1
+  gcloud dataproc jobs wait $JOB_ID_2 --region asia-east1
   
   if [ $? -eq 0 ]; then
     echo "${GREEN}✓ Second job completed successfully${RESET}"
     echo -e "\n"
     echo "${YELLOW}Job comparison:${RESET}"
-    gcloud dataproc jobs list --region us-west1 --format="table(reference.jobId,status.state,yarnApplicationsId)" --limit 2
+    gcloud dataproc jobs list --region asia-east1 --format="table(reference.jobId,status.state,yarnApplicationsId)" --limit 2
   fi
 else
   echo "${RED}✗ Failed to submit second job${RESET}"
