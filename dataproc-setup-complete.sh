@@ -96,24 +96,40 @@ if [ $? -eq 0 ]; then
     if [ $? -eq 0 ]; then
       echo "${GREEN}✓ Cluster deleted${RESET}"
       echo -e "\n${YELLOW}Creating new cluster (this may take several minutes)...${RESET}"
-      gcloud dataproc clusters create example-cluster \
-        --region asia-east1 \
-        --zone asia-east1-c \
-        --master-machine-type e2-standard-2 \
-        --master-boot-disk-size 30 \
-        --num-workers 2 \
-        --worker-machine-type e2-standard-2 \
-        --worker-boot-disk-size 30 \
-        --image-version 2.2-debian12 \
-        --project $PROJECT_ID \
-        --enable-component-gateway
       
-      if [ $? -eq 0 ]; then
-        echo "${GREEN}✓ Cluster creation initiated successfully${RESET}"
-      else
-        echo "${RED}✗ Failed to create cluster${RESET}"
-        exit 1
-      fi
+      # Retry logic for cluster creation
+      MAX_RETRIES=3
+      RETRY_COUNT=0
+      CLUSTER_CREATED=false
+      
+      while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$CLUSTER_CREATED" = false ]; do
+        gcloud dataproc clusters create example-cluster \
+          --region asia-east1 \
+          --zone asia-east1-c \
+          --master-machine-type e2-standard-2 \
+          --master-boot-disk-size 30 \
+          --num-workers 2 \
+          --worker-machine-type e2-standard-2 \
+          --worker-boot-disk-size 30 \
+          --image-version 2.2-debian12 \
+          --project $PROJECT_ID \
+          --enable-component-gateway
+        
+        if [ $? -eq 0 ]; then
+          echo "${GREEN}✓ Cluster creation initiated successfully${RESET}"
+          CLUSTER_CREATED=true
+        else
+          RETRY_COUNT=$((RETRY_COUNT + 1))
+          if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            WAIT_TIME=$((RETRY_COUNT * 30))
+            echo "${YELLOW}Cluster creation failed. Retrying in ${WAIT_TIME} seconds... (Attempt $RETRY_COUNT/$MAX_RETRIES)${RESET}"
+            sleep $WAIT_TIME
+          else
+            echo "${RED}✗ Failed to create cluster after $MAX_RETRIES attempts${RESET}"
+            exit 1
+          fi
+        fi
+      done
     else
       echo "${RED}✗ Failed to delete cluster${RESET}"
       exit 1
@@ -123,24 +139,40 @@ if [ $? -eq 0 ]; then
   fi
 else
   echo "${YELLOW}Cluster does not exist. Creating new cluster...${RESET}"
-  gcloud dataproc clusters create example-cluster \
-    --region asia-east1 \
-    --zone asia-east1-c \
-    --master-machine-type e2-standard-2 \
-    --master-boot-disk-size 30 \
-    --num-workers 2 \
-    --worker-machine-type e2-standard-2 \
-    --worker-boot-disk-size 30 \
-    --image-version 2.2-debian12 \
-    --project $PROJECT_ID \
-    --enable-component-gateway
   
-  if [ $? -eq 0 ]; then
-    echo "${GREEN}✓ Cluster creation initiated successfully${RESET}"
-  else
-    echo "${RED}✗ Failed to create cluster${RESET}"
-    exit 1
-  fi
+  # Retry logic for cluster creation (in case of temporary VPC issues)
+  MAX_RETRIES=3
+  RETRY_COUNT=0
+  CLUSTER_CREATED=false
+  
+  while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$CLUSTER_CREATED" = false ]; do
+    gcloud dataproc clusters create example-cluster \
+      --region asia-east1 \
+      --zone asia-east1-c \
+      --master-machine-type e2-standard-2 \
+      --master-boot-disk-size 30 \
+      --num-workers 2 \
+      --worker-machine-type e2-standard-2 \
+      --worker-boot-disk-size 30 \
+      --image-version 2.2-debian12 \
+      --project $PROJECT_ID \
+      --enable-component-gateway
+    
+    if [ $? -eq 0 ]; then
+      echo "${GREEN}✓ Cluster creation initiated successfully${RESET}"
+      CLUSTER_CREATED=true
+    else
+      RETRY_COUNT=$((RETRY_COUNT + 1))
+      if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+        WAIT_TIME=$((RETRY_COUNT * 30))
+        echo "${YELLOW}Cluster creation failed. Retrying in ${WAIT_TIME} seconds... (Attempt $RETRY_COUNT/$MAX_RETRIES)${RESET}"
+        sleep $WAIT_TIME
+      else
+        echo "${RED}✗ Failed to create cluster after $MAX_RETRIES attempts${RESET}"
+        exit 1
+      fi
+    fi
+  done
 fi
 
 # ==================== STEP 7: Verify Cluster Status ====================
